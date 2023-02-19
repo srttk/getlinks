@@ -4,10 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/url"
 	"os"
 
 	"github.com/gocolly/colly"
+	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -24,16 +27,18 @@ func main() {
 
 func ScrapeLinks(Url string) {
 
+	Sites := initializeSettings("settings.yaml")
+
 	u := GetUrlInfo(Url)
 
 	if !u.IsAbsolute {
-		panic("Invalid Url")
+		log.Fatalf("Invalid Url %s", Url)
 	}
 
-	config, err := getSiteConfig(u.Domain)
+	config, err := getSiteConfig(u.Domain, Sites)
 
 	if err != nil {
-		panic("Site not found")
+		log.Fatalf("Site %s not found \n", u.Domain)
 	}
 
 	result := ExtractedResult{
@@ -155,7 +160,9 @@ func (result *ExtractedResult) SaveResult(filename string) {
 
 }
 
-func getSiteConfig(domain string) (ScrapeConfig, error) {
+func getSiteConfig(domain string, Sites map[string]ScrapeConfig) (ScrapeConfig, error) {
+
+	fmt.Println("Sites", Sites)
 
 	config, isOK := Sites[domain]
 
@@ -167,8 +174,26 @@ func getSiteConfig(domain string) (ScrapeConfig, error) {
 
 }
 
-var Sites map[string]ScrapeConfig = map[string]ScrapeConfig{"egghead.io": {Selector: "ul li a.text-lg.font-semibold"}}
-
 type ScrapeConfig struct {
 	Selector string
+}
+
+func initializeSettings(filename string) map[string]ScrapeConfig {
+
+	content, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		panic("Cant read settings file")
+	}
+
+	Sites := make(map[string]ScrapeConfig)
+
+	err2 := yaml.Unmarshal(content, &Sites)
+
+	if err2 != nil {
+		panic("Yaml parsing error")
+	}
+
+	return Sites
+
 }
