@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -180,7 +179,7 @@ type ScrapeConfig struct {
 
 func initializeSettings(filename string) map[string]ScrapeConfig {
 
-	content, err := ioutil.ReadFile(filename)
+	content, err := os.ReadFile(filename)
 
 	if err != nil {
 		panic("Cant read settings file")
