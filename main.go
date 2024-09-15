@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/gocolly/colly"
 	"gopkg.in/yaml.v3"
@@ -20,13 +21,20 @@ func main() {
 
 	flag.Parse()
 
-	ScrapeLinks(URL)
+
+	homeDir, err:=os.UserHomeDir()
+
+	if err != nil {
+		log.Fatal(`Could not read settings.yml `, err)
+	}
+
+	ScrapeLinks(URL, homeDir)
 
 }
 
-func ScrapeLinks(Url string) {
+func ScrapeLinks(Url string, setingsFilePath string) {
 
-	Sites := initializeSettings("settings.yaml")
+	Sites := initializeSettings( filepath.Join(setingsFilePath,  "settings.yaml"))
 
 	u := GetUrlInfo(Url)
 
