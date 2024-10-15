@@ -17,6 +17,8 @@ func main() {
 
 	var URL string = ""
 
+	var outFile string = "links"
+
 	flag.StringVar(&URL, "u", "", "-u")
 
 	flag.Parse()
@@ -28,11 +30,11 @@ func main() {
 		log.Fatal(`Could not read settings.yml `, err)
 	}
 
-	ScrapeLinks(URL, homeDir)
+	ScrapeLinks(URL, homeDir, outFile)
 
 }
 
-func ScrapeLinks(Url string, setingsFilePath string) {
+func ScrapeLinks(Url string, setingsFilePath string, outputFile string) {
 
 	Sites := initializeSettings( filepath.Join(setingsFilePath,  "settings.yaml"))
 
@@ -64,8 +66,17 @@ func ScrapeLinks(Url string, setingsFilePath string) {
 
 	c.OnHTML(config.Selector, func(h *colly.HTMLElement) {
 
-		href := h.Attr("href")
-		text := h.Text
+		fmt.Println(">> ", h.Name)
+
+		var href string = ""
+		var text string = ""
+		if h.Name == "img" {
+			href = h.Attr("src")
+			text = h.Attr("alt")
+		} else {
+			href = h.Attr("href")
+			text = h.Text
+		}
 		link := GetAbsoluteUrl(href, u)
 		extractedLink := ExtractedLink{
 			Url:  link,
@@ -85,7 +96,7 @@ func ScrapeLinks(Url string, setingsFilePath string) {
 
 		fmt.Println("Scrape completed")
 
-		result.SaveResult("list")
+		result.SaveResult(outputFile)
 
 	})
 
